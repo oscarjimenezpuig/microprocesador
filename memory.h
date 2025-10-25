@@ -2,7 +2,7 @@
 ============================================================
   Fichero: memory.h
   Creado: 24-10-2025
-  Ultima Modificacion: vie 24 oct 2025 12:31:00
+  Ultima Modificacion: dissabte, 25 d’octubre de 2025, 09:31:00
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -13,15 +13,13 @@ typedef unsigned char u1;
 
 
 #define DRAM 128
-#define DOUT 10
-#define DIN 10
+#define DOUT 16
 #define DLIN 1
-#define DPRG (DMEM-DRAM-DOUT-DIN)
+#define DPRG (DMEM-DRAM-DOUT)
 #define ORAM 0
 #define OLIN (ORAM+DRAM)
 #define OPRG (OLIN+DLIN)
 #define OOUT (OPRG+DPRG)
-#define DIN (OOUT+DOUT)
 
 //instruccines
 
@@ -41,6 +39,9 @@ typedef unsigned char u1;
 #define DEC 13 //se decrementa el valor almacenado en la direccon en uno <direccion>
 #define PRT 14 //se imprime lo que esta en el buffer de impresion
 #define INP 15 //se guarda en el buffer de entrada un valor
+#define VTO 16 //se mueve un valor de una direccion al buffer de impresion <direccion> donde se transforma en una sucesion de caracteres
+#define OTV 17 //el valor registrado en el output se mueve a una direccion <direccion>
+
 
 //macros
 
@@ -54,17 +55,19 @@ typedef unsigned char u1;
 #define MNOT(A) MEM(A)=~MEM(A)
 #define MLFT(A) (MEM(A)=(MEM(A)<<1))
 #define MRGT(A) (MEM(A)=MEM(A)>>1)
-#define INC(A) (MEM(A)++
-#define DEC(A) (MEM(A))--
-
-extern u1 memory[MEMORY];
-
-u1 ins(u1 byte); //insercion de programa en el siguiente byte vacio
-
-void program(); //aqui dentro va el programa donde se introducen en la posicion relativa al programa todas las lineas.
-			   
-
+#define MINC(A) (MEM(A))++
+#define MDEC(A) (MEM(A))--
+#define MIF(A,B) if (MEM(A)==0) MJMP(B)
+#define MIFN(A,B) if(MEM(A)!=0) MJMP(B)
+#define MJMP(A) MEM(OLIN)=(A)+OPRG
 
 //funciones
 
+extern u1 memory[DMEM];
+
+void program(); //aqui dentro va el programa donde se introducen en la posicion relativa al programa todas las lineas.
+			   
+void insert(u1 bytes,u1* byte); //aqui se pone todo el programa para que sea introducido donde toca
+
+void mem_prt(u1 dir_ini,u1 dir_len); //imprime la memoria desde la direccion inicio con la longitud dicha
 
