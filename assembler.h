@@ -2,7 +2,7 @@
 ============================================================
   Fichero: assembler.h
   Creado: 26-10-2025
-  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 09:24:39
+  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 12:31:57
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -23,11 +23,10 @@
 
 //numero de instrucciones
 
-#define DINS 18
+#define DINS (END-IGN+1)
 
 //cadena de instrucciones
 
-#define SEND "END"
 #define SLOD "LOAD"
 #define SMOV "MOVE"
 #define SVDR "VDR"
@@ -45,12 +44,12 @@
 #define SINP "INPUT"
 #define SVTO "PUSH"
 #define SOTV "POP"
+#define SEND "END"
 
-#define INSD {SEND,SLOD,SMOV,SVDR,SAND,SOR,SNOT,SLFT,SRGT,SIF,SIFN,SJMP,SINC,SDEC,SPRT,SINP,SVTO,SOTV}
+#define INSD {SLOD,SMOV,SVDR,SAND,SOR,SNOT,SLFT,SRGT,SIF,SIFN,SJMP,SINC,SDEC,SPRT,SINP,SVTO,SOTV,SEND}
 
 //complementos de cada instruccion
 
-#define CEND 0
 #define CLOD 2
 #define CMOV 2
 #define CVDR 2
@@ -68,7 +67,8 @@
 #define CINP 0
 #define CVTO 1
 #define COTV 1
+#define CEND 0
 
-#define INNC {CEND,CLOD,CMOV,CVDR,CAND,COR,CNOT,CLFT,CRGT,CIF,CIFN,CJMP,CINC,CDEC,CPRT,CINP,CVTO,COTV}
+#define INNC {CLOD,CMOV,CVDR,CAND,COR,CNOT,CLFT,CRGT,CIF,CIFN,CJMP,CINC,CDEC,CPRT,CINP,CVTO,COTV,CEND}
 
 

@@ -2,7 +2,7 @@
 ============================================================
   Fichero: memory.h
   Creado: 24-10-2025
-  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 05:59:21
+  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 13:25:33
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -25,7 +25,7 @@ typedef unsigned char u1;
 
 //instruccines
 
-#define END 0 //final de programa
+#define IGN 0 //instruccion ignorada
 #define LOD 1 //cargar valor <direccion,valor>
 #define MOV 2 //mover de origen a destino <direccion_o,direccion_d>
 #define VDR 3 //da el valor de la direccion contenida en la direccion apuntada y la guarda en destino <direccion_o,direccion_d>
@@ -43,7 +43,7 @@ typedef unsigned char u1;
 #define INP 15 //se guarda en el buffer de entrada un valor
 #define VTO 16 //se mueve un valor de una direccion al buffer de impresion <direccion> donde se transforma en una sucesion de caracteres
 #define OTV 17 //el valor registrado en el output se mueve a una direccion <direccion>
-
+#define END 18 //final de programa
 
 //macros
 
@@ -70,11 +70,11 @@ extern u1 memory[DMEM];
 void program(); 
 //aqui dentro va el programa donde se introducen en la posicion relativa al programa todas las lineas.
 			   
-u1 instruction(u1 byte);
-//se inserta la siguiente instruccion, se devuelve el siguiente bit libre (0 si no hay ninguno)
+u1 ins_prg_dir(u1 direction);
+//se establece la nueva direccion a partir de la que se introduciran instrucciones
 
-void insert(u1 bytes,u1* byte); 
-//aqui se pone todo el programa para que sea introducido donde toca
+u1 ins_prg_ins(u1 value);
+//se introducen instrucciones siempre y cuando haya espacio en la memoria de programa
 
 void mem_prt(u1 dir_ini,u1 dir_len); 
 //imprime la memoria desde la direccion inicio con la longitud dicha

@@ -2,7 +2,7 @@
 ============================================================
   Fichero: memory.c
   Creado: 24-10-2025
-  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 08:37:06
+  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 13:28:44
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -16,16 +16,37 @@ u1 memory[DMEM];
 static void mem_init() {
 	u1* ptr=memory;
 	while(ptr!=memory+DMEM) *ptr++=0;
-	memory[OLIN]=OPRG;
+	memory[OLIN]=OPRG-1;
 	memory[OPLO]=OOUT-1;
 }
 
-u1 instruction(u1 i) {
+u1 ins_prg_dir(u1 d) {
+	u1 dd=OPRG+d;
+	if(dd>memory[OLIN] && dd<OPRG+DPRG) {
+		memory[OLIN]=dd;
+		return 0;
+	} else return 1;
+}
+
+u1 ins_prg_ins(u1 b) {
+	u1* ptr=memory+OLIN;
+	if(*ptr!=OPRG+DPRG) {
+		*(memory+*ptr)=b;
+		*ptr+=1;
+		return 0;
+	}
+	return 1;
+}
+
+u1 instruction(u1 d,u1 i) {
 	u1 dir=memory[OLIN];
-	memory[dir]=i;
-	++dir;
-	memory[OLIN]=(dir==OPRG+DPRG)?OPRG:dir;
-	return dir;
+	u1 dd=d+OPRG;
+	if(d>dir && d<OPRG+DPRG) {
+		memory[d]=i;
+		memory[OLIN]=d;
+		return 0;
+	}
+	return 1;
 }
 
 static u1 ins_read() {
@@ -183,6 +204,8 @@ static u1 prg_exe() {
 	while(*pmo!=OPRG+DPRG && !err) {
 		u1 ins=ins_read();
 		switch(ins) {
+			case IGN:
+				break;
 			case INP:
 			case PRT:
 			case END:
