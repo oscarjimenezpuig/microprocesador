@@ -2,7 +2,7 @@
 ============================================================
   Fichero: memory.c
   Creado: 24-10-2025
-  Ultima Modificacion: dissabte, 25 d’octubre de 2025, 10:04:59
+  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 08:37:06
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -17,14 +17,15 @@ static void mem_init() {
 	u1* ptr=memory;
 	while(ptr!=memory+DMEM) *ptr++=0;
 	memory[OLIN]=OPRG;
+	memory[OPLO]=OOUT-1;
 }
 
-void insert(u1 bs,u1* b) {
-	u1* pb=b;
-	u1* pm=memory+OPRG;
-	while(pm!=memory+OPRG+DPRG && pb!=b+bs) {
-		*pm++=*pb++;
-	}
+u1 instruction(u1 i) {
+	u1 dir=memory[OLIN];
+	memory[dir]=i;
+	++dir;
+	memory[OLIN]=(dir==OPRG+DPRG)?OPRG:dir;
+	return dir;
 }
 
 static u1 ins_read() {
@@ -35,89 +36,63 @@ static u1 ins_read() {
 	return ret;
 }
 
-static void move_to_output(u1 dir) {
-	u1 val=memory[dir];
-	u1* ptr=memory+OOUT;
-	while(*ptr!=0 && ptr!=memory+OOUT+DOUT) ptr++;
-	u1 ocups=ptr-(memory+OOUT);
-	if(DOUT-ocups>=3) {
-		ptr=ptr+2;
-		*ptr=*(ptr-1)=*(ptr-2)='0';
-		while(val!=0) {
-			if(*ptr=='9') {
-				*ptr='0';
-				if(*(ptr-1)=='9') {
-					*(ptr-1)='0';
-					*(ptr-2)=*(ptr-2)+1;
-				} else *(ptr-1)=*(ptr-1)+1;
-			} else *ptr=*ptr+1;
-			val--;
-		}
-	}
-}								
-
-static void print_output() {
-	//en la impresion del output el buffer se va vaciando conforme se imprime
-	u1* ptr=memory+OOUT;
-	printf("> ");
-	while(*ptr!=0 && ptr!=memory+OOUT+DOUT) {
-		printf("%c",*ptr);
+static void dir_to_out(u1 dir) {
+	u1 lastdir=memory[OPLO];
+	if(lastdir<OOUT+DOUT-4) { //verifica que la ultima direccion no sea el final del buffe
+		u1 val=memory[dir];
+		u1* ptr=memory+lastdir+1;
 		*ptr++=0;
+		u1* u=ptr++;
+		u1* d=ptr++;
+		u1* c=ptr;
+		*u=val%10+'0';
+		val=val/10;
+		*d=val%10+'0';
+		*c=val/10+'0';
+		memory[OPLO]=c-memory;
+	}
+}
+
+static void out_to_dir(u1 dir) {
+	u1* ptr=memory+memory[OPLO];
+	if(ptr!=memory+OOUT-1) {
+		u1 val=0;
+		u1 fac=1;
+		while(*ptr!=0) {
+			val+=fac*(*ptr-'0');
+			fac=fac*10;
+			ptr--;
+		}
+		ptr--;
+		memory[OPLO]=ptr-memory;
+		memory[dir]=val;
+	}
+}
+
+static void out_to_print() {
+	printf("> ");
+	if(memory[OPLO]>=OOUT) {
+		u1* ptr=memory+memory[OPLO];
+		while(*ptr!=0) {
+			printf("%c",*ptr);
+			ptr--;
+		}
+		ptr--;
+		memory[OPLO]=ptr-memory;
 	}
 	printf("\n");
 }
 
-static void output_to_dir(u1 dir) {
-	u1 *ptr,*init,*end;
-	init=memory+OOUT;
-	ptr=init+3;
-	end=init+DOUT;
-	while(*ptr!=0) {
-		for(u1 n=0;n<3;n++) {
-			if(ptr==end) return;
-			else ptr++;
-		}
-	}
-	u1* u=ptr;
-	u1* d=ptr-1;
-	u1* c=ptr-2;
-	u1 val=0;
-	while(*u!=0) {
-		if(*u=='0') {
-			if(*d==0) *u=0;
-			else if(*d=='0') {
-				if(*c==0) *d=0;
-				else if (*c=='0') *c=0;
-				else {
-					*c=*c-1;
-					*d=*d+9;
-				}
-			} else {
-				*d=*d-1;
-				*u=*u+9;
-			}
-		} else {
-			*u=*u-1;
-			val++;
-		}
-	}
-	memory[dir]=val;
-}
-
-static void output_input() {
-	u1 *ptr,*init,*end;
-	init=ptr=memory+OOUT;
-	end=init+DOUT;
-	while(*ptr!=0) {
-		if(ptr==end) return;
-		else ptr++;
-	}
-	char c=0;
+static void input_to_out() {
 	printf("< ");
-	while((c=getchar())!='\n' && ptr!=end) {
-		*ptr++=c;
+	u1* ptr=memory+memory[OPLO]+1;
+	u1* end=memory+OOUT+DOUT;
+	if(ptr!=end) {
+		char c=0;
+		*ptr=0;
+		while(ptr!=end &&(c=getchar())!='\n') *(++ptr)=c;
+		memory[OPLO]=ptr-memory;
 	}
-	mem_prt(OOUT,DOUT);//dbg
 }
 
 static u1 ins_zero_com(u1 ins) {
@@ -126,10 +101,10 @@ static u1 ins_zero_com(u1 ins) {
 			memory[OLIN]=OPRG+DPRG;
 			break;
 		case PRT:
-			print_output();
+			out_to_print();
 			break;
 		case INP:
-			output_input();
+			input_to_out();
 			break;
 		default:
 			return 1;
@@ -159,10 +134,10 @@ static u1 ins_one_com(u1 ins) {
 			MJMP(com);
 			break;
 		case VTO:
-			move_to_output(com);
+			dir_to_out(com);
 			break;
 		case OTV:
-			output_to_dir(com);
+			out_to_dir(com);
 			break;
 		default:
 			return 1;
@@ -203,6 +178,7 @@ static u1 ins_two_com(u1 ins) {
 
 static u1 prg_exe() {
 	u1* pmo=memory+OLIN;
+	*pmo=OPRG;
 	u1 err=0;
 	while(*pmo!=OPRG+DPRG && !err) {
 		u1 ins=ins_read();
@@ -235,8 +211,6 @@ static u1 prg_exe() {
 				err=1;
 		}
 	}
-	mem_prt(OOUT,DOUT);//dbg
-	mem_prt(0,1);//dbg
 	if(err) return memory[OLIN];
 	else return 0;
 }
@@ -259,14 +233,3 @@ int main() {
 	program();
 	return prg_exe();
 }
-
-//prueba
-
-void program() {
-	u1 prg[]={INP,OTV,0,VTO,0,PRT,END};
-	insert(7,prg);
-}
-
-
-
-

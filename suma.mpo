@@ -1,0 +1,14 @@
+#SUMA para microprocesador
+#OJP 2025
+#programa que suma dos valores mediante incrementos y decrementos
+1 INPUT
+2 POP 0
+3 INPUT
+4 POP 1
+5 IF 1 9
+6 INC 0
+7 DEC 1
+8 JUMP 5
+9 PUSH 0
+10 PRINT
+11 END

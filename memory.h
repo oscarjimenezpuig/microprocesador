@@ -2,7 +2,7 @@
 ============================================================
   Fichero: memory.h
   Creado: 24-10-2025
-  Ultima Modificacion: dissabte, 25 d’octubre de 2025, 09:31:00
+  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 05:59:21
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -15,11 +15,13 @@ typedef unsigned char u1;
 #define DRAM 128
 #define DOUT 16
 #define DLIN 1
-#define DPRG (DMEM-DRAM-DOUT)
+#define DPLO 1
+#define DPRG (DMEM-DRAM-DOUT-DPLO-DLIN)
 #define ORAM 0
 #define OLIN (ORAM+DRAM)
 #define OPRG (OLIN+DLIN)
-#define OOUT (OPRG+DPRG)
+#define OPLO (OPRG+DPRG)
+#define OOUT (OPLO+DPLO)
 
 //instruccines
 
@@ -65,9 +67,15 @@ typedef unsigned char u1;
 
 extern u1 memory[DMEM];
 
-void program(); //aqui dentro va el programa donde se introducen en la posicion relativa al programa todas las lineas.
+void program(); 
+//aqui dentro va el programa donde se introducen en la posicion relativa al programa todas las lineas.
 			   
-void insert(u1 bytes,u1* byte); //aqui se pone todo el programa para que sea introducido donde toca
+u1 instruction(u1 byte);
+//se inserta la siguiente instruccion, se devuelve el siguiente bit libre (0 si no hay ninguno)
 
-void mem_prt(u1 dir_ini,u1 dir_len); //imprime la memoria desde la direccion inicio con la longitud dicha
+void insert(u1 bytes,u1* byte); 
+//aqui se pone todo el programa para que sea introducido donde toca
+
+void mem_prt(u1 dir_ini,u1 dir_len); 
+//imprime la memoria desde la direccion inicio con la longitud dicha
 

@@ -81,7 +81,7 @@ check:
 
 #MAKEFILE VARIABLE
 
-NAME =  
-SCRS = 
+NAME = micro 
+SCRS = memory.c assembler.c
 INCLUDES = #-lX11
 
