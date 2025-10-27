@@ -1,0 +1,5 @@
+#Programa de prueba de microprocesador
+1 LOAD 0 155
+5 PUSH 0
+10 PRINT
+15 END

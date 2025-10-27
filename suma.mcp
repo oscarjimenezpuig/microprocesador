@@ -1,0 +1,16 @@
+#SUMA DE ENTEROS
+#OJP 2025
+#Programa que hace una suma de dos numeros enteros entrados por teclado
+0 INPUT
+3 POP 0
+6 INPUT
+9 POP 1
+12 IF 1 24
+15 DEC 1
+18 INC 0
+21 JUMP 12
+24 PUSH 0
+27 PRINT
+
+
+

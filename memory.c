@@ -2,7 +2,7 @@
 ============================================================
   Fichero: memory.c
   Creado: 24-10-2025
-  Ultima Modificacion: diumenge, 26 d’octubre de 2025, 13:28:44
+  Ultima Modificacion: lun 27 oct 2025 10:38:48
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -41,7 +41,7 @@ u1 ins_prg_ins(u1 b) {
 u1 instruction(u1 d,u1 i) {
 	u1 dir=memory[OLIN];
 	u1 dd=d+OPRG;
-	if(d>dir && d<OPRG+DPRG) {
+	if(dd>dir && dd<OPRG+DPRG) {
 		memory[d]=i;
 		memory[OLIN]=d;
 		return 0;
