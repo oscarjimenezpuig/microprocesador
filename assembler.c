@@ -2,7 +2,7 @@
 ============================================================
   Fichero: assembler.c
   Creado: 26-10-2025
-  Ultima Modificacion: dimarts, 28 d’octubre de 2025, 05:23:51
+  Ultima Modificacion: mar 28 oct 2025 11:46:31
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -14,7 +14,7 @@
 
 #define EOL '\n'
 #define EOW ' '
-#define EON '\0'
+#define EON 0
 
 typedef u1 (*Read)(u1*);
 
@@ -28,46 +28,34 @@ typedef u1 (*Read)(u1*);
 #define FCOMMENT 8
 #define FERROR 16
 
-/*
-static struct {
-	u1 word : 1;
-	u1 line : 1;
-	u1 file : 1;
-	u1 comment: 1;
-	u1 error : 1;
-} flag ={0,0,0,0,0};
-
-static char word[10]="";
-
-static u1 line=0;
-*/
-
 #define flagset(F) (memory[FLAG]|=(F))
 #define flagunset(F) (memory[FLAG]&=~(F))
 #define flagis(F) ((memory[FLAG] & (F))?1:0)
 
 #define line (memory[LINE])
 
-static void error(u1 line,const char* desc,...) {
+#define word (char*)(memory+WORD)
+
+static void error(u1 nline,const char* desc,...) {
 	va_list list;
 	va_start(list,desc);
 	char str[100];
-	sprintf(str,"ERROR(%i): %s.\n",line,desc);
+	sprintf(str,"ERROR(%i): %s.\n",nline,desc);
 	vprintf(str,list);
 	va_end(list);
 	flagset(FERROR);
 }
 
 static void read_word(FILE* file) {
-	u1* pw=memory+WORD;
+	char* pw=word;
 	char c=0;
 repeat:
 	while((c=getc(file)) && c!=EOW && c!=EOL && c!=EOF) {
 		if(c==COC) flagset(FCOMMENT);
-		else if (flagis(FCOMMENT)==0) *pw++=c;
+		else if (!flagis(FCOMMENT)) *pw++=c;
 	}
 	*pw=EON;
-	if(memory[WORD]==EON && c!=EOF && c!=EOL) goto repeat;
+	if(*word==EON && c!=EOF && c!=EOL) goto repeat;
 	switch(c) {
 		case EOF:
 			flagset(FFILE);
@@ -80,7 +68,7 @@ repeat:
 }
 
 static u1 wordisempty() {
-	return memory[WORD]=0;
+	return *word==EON;
 }
 
 static u1 wordtoint() {
@@ -147,7 +135,7 @@ static void read_line(FILE* file) {
 	const char* MESEX[]={"line number","instruction","complement","complement"};
 	u1 counter=0;
 	u1 counter_end=2;
-	while(counter<counter_end && flag.error==0 && flag.line==0) {
+	while(counter<counter_end && !flagis(FERROR) && !flagis(FLINE)) {
 		read_word(file);
 		if(!wordisempty()) {
 			u1 value;
@@ -161,9 +149,9 @@ static void read_line(FILE* file) {
 }
 
 static void read_program(FILE* file) {
-	while(flag.file==0 && flag.error==0) {
+	while(!flagis(FFILE) && !flagis(FERROR)) {
 		read_line(file);
-		flag.word=flag.line=0;
+		flagunset(FERROR|FLINE);
 	}
 }
 
@@ -176,9 +164,17 @@ static void inpstr(u1 len,char* str) {
 	*p=EON;
 }
 
+static void memerase(u1 origin,u1 dim) {
+	u1* ptr=memory+origin;
+	while(ptr!=memory+origin+dim) *ptr++=0;
+}
+
 static void prgerase() {
-	u1* ptr=memory+OPRG;
-	while(ptr!=memory+OPRG+DPRG) *ptr++=0;
+	memerase(OPRG,DPRG);
+}
+
+static void ramerase() {
+	memerase(ORAM,DRAM);
 }
 
 void program() {
@@ -187,10 +183,10 @@ void program() {
 	inpstr(20,nof);
 	FILE* file=fopen(nof,"r");
 	if(file) {
+		memory[WORD]=EON;
 		read_program(file);
-		if(flag.error) {
-			prgerase();
-		}
+		if(flagis(FERROR)) prgerase();
+		else ramerase();
 		fclose(file);
 		file=NULL;
 	} else error(0,"File <%s> not found",nof);
