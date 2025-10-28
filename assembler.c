@@ -2,7 +2,7 @@
 ============================================================
   Fichero: assembler.c
   Creado: 26-10-2025
-  Ultima Modificacion: lun 27 oct 2025 14:31:52
+  Ultima Modificacion: dimarts, 28 d’octubre de 2025, 05:23:51
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -18,19 +18,35 @@
 
 typedef u1 (*Read)(u1*);
 
+#define FLAG ORAM
+#define LINE ORAM+1
+#define WORD ORAM+2
 
-static FILE* file=NULL;
+#define FWORD 1
+#define FLINE 2
+#define FFILE 4
+#define FCOMMENT 8
+#define FERROR 16
 
-struct {
+/*
+static struct {
 	u1 word : 1;
 	u1 line : 1;
 	u1 file : 1;
+	u1 comment: 1;
 	u1 error : 1;
-} flag ={0,0,0,0};
+} flag ={0,0,0,0,0};
 
-char word[10]="";
+static char word[10]="";
 
-u1 line=0;
+static u1 line=0;
+*/
+
+#define flagset(F) (memory[FLAG]|=(F))
+#define flagunset(F) (memory[FLAG]&=~(F))
+#define flagis(F) ((memory[FLAG] & (F))?1:0)
+
+#define line (memory[LINE])
 
 static void error(u1 line,const char* desc,...) {
 	va_list list;
@@ -39,34 +55,37 @@ static void error(u1 line,const char* desc,...) {
 	sprintf(str,"ERROR(%i): %s.\n",line,desc);
 	vprintf(str,list);
 	va_end(list);
-	flag.error=1;
+	flagset(FERROR);
 }
 
-static void read_word() {
-	char* pw=word;
+static void read_word(FILE* file) {
+	u1* pw=memory+WORD;
 	char c=0;
 repeat:
-	while((c=getc(file)) && c!=EOW && c!=EOL && c!=EOF) *pw++=c;
+	while((c=getc(file)) && c!=EOW && c!=EOL && c!=EOF) {
+		if(c==COC) flagset(FCOMMENT);
+		else if (flagis(FCOMMENT)==0) *pw++=c;
+	}
 	*pw=EON;
-	if(*word==EON && c!=EOF && c!=EOL) goto repeat;
+	if(memory[WORD]==EON && c!=EOF && c!=EOL) goto repeat;
 	switch(c) {
 		case EOF:
-			flag.file=1;
+			flagset(FFILE);
 		case EOL:
-			flag.line=1;
+			flagset(FLINE);
+			flagunset(FCOMMENT);
 		case EOW:
-			flag.word=1;
+			flagset(FWORD);
 	}
-
 }
 
 static u1 wordisempty() {
-	return *word==EON;
+	return memory[WORD]=0;
 }
 
 static u1 wordtoint() {
 	u1 value=0;
-	sscanf(word,"%hhi",&value);
+	sscanf((char*)(memory+WORD),"%hhi",&value);
 	return value;
 }
 
@@ -74,7 +93,7 @@ static u1 read_number(u1* nline) {
 	//lee el numero de linea y devuelve cual es
 	*nline=line=wordtoint();
 	if(ins_prg_dir(line)!=0) {
-		error(line,"Can't allow direction %hhi. Maybe already writed",line+OPRG);
+		error(line,"Can't allow direction %i. Maybe already writed",line+OPRG);
 		return 0;
 	}
 	return 1;
@@ -106,8 +125,9 @@ static u1 read_instruction(u1* instruction) {
 static u1 read_complement(u1* complement) {
 	char* p=word;
 	u1 err=0;
-	while(!err && p!=word+3) {
+	while(err==0 && *p!=EON) {
 		if(*p<'0' || *p>'9') err=1;
+		p++;
 	}
 	if(err) error(line,"Expected a number to be a complement but found <%s>",word);
 	else {
@@ -117,47 +137,40 @@ static u1 read_complement(u1* complement) {
 	return err;
 }
 
-static void read_comment() {
-	if(*word==COC) {
-		while(flag.line==0) read_word();
-	}
-}
-
 static u1 number_complements(u1 i) {
 	const u1 NOC[]=INNC;
 	return NOC[i-1];
 }
 	
-static void read_line() {
+static void read_line(FILE* file) {
 	const Read READF[]={read_number,read_instruction,read_complement,read_complement};
 	const char* MESEX[]={"line number","instruction","complement","complement"};
 	u1 counter=0;
 	u1 counter_end=2;
-	for(;counter<counter_end && flag.error==0 && flag.line==0;counter++) {
-		read_word();
+	while(counter<counter_end && flag.error==0 && flag.line==0) {
+		read_word(file);
 		if(!wordisempty()) {
-			read_comment();
-			if(flag.line==0) {
-				u1 value;
-				READF[counter](&value);
-				if(counter==1) counter_end+=number_complements(value);
-			}
-		} else {
+			u1 value;
+			READF[counter](&value);
+			if(counter==1) counter_end+=number_complements(value);
+			counter++;
+		} else if(counter!=0) {
 			error(line,"Expected %s",MESEX[counter]);
 		}
 	}
 }
 
-static void read_program() {
-	while(flag.file==0) {
-		read_line();
+static void read_program(FILE* file) {
+	while(flag.file==0 && flag.error==0) {
+		read_line(file);
+		flag.word=flag.line=0;
 	}
 }
 
 static void inpstr(u1 len,char* str) {
 	char c=0;
 	char* p=str;
-	while(p-str<le;n && (c=getchar())!=EOL) {
+	while(p-str<len && (c=getchar())!=EOL) {
 		*p++=c;
 	}
 	*p=EON;
@@ -170,10 +183,11 @@ static void prgerase() {
 
 void program() {
 	char nof[21];
+	printf("Enter filename: ");
 	inpstr(20,nof);
-	file=fopen(nof,"r");
+	FILE* file=fopen(nof,"r");
 	if(file) {
-		read_program();
+		read_program(file);
 		if(flag.error) {
 			prgerase();
 		}

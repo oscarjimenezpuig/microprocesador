@@ -2,7 +2,7 @@
 ============================================================
   Fichero: memory.c
   Creado: 24-10-2025
-  Ultima Modificacion: lun 27 oct 2025 10:38:48
+  Ultima Modificacion: dimarts, 28 d’octubre de 2025, 04:59:19
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -22,7 +22,7 @@ static void mem_init() {
 
 u1 ins_prg_dir(u1 d) {
 	u1 dd=OPRG+d;
-	if(dd>memory[OLIN] && dd<OPRG+DPRG) {
+	if(dd>=memory[OLIN] && dd<OPRG+DPRG) {
 		memory[OLIN]=dd;
 		return 0;
 	} else return 1;
