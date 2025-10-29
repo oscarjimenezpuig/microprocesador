@@ -1,0 +1,29 @@
+#FIBONACCI
+#OJP 2025
+#Programa que calcula algunos terminos de la sucesion de Fibonacci
+0 LOAD 0 0
+3 LOAD 1 1
+6 LOAD 3 0 #copia de 0
+9 LOAD 4 0 #copia de 1
+12 LOAD 5 12 #contador
+15 LOAD 2 0
+18 MOVE 0 3
+21 MOVE 1 4
+24 IF 3 36
+27 DEC 3
+30 INC 2
+33 JUMP 24
+36 IF 4 48
+39 DEC 4
+42 INC 2
+45 JUMP 36
+48 PUSH 2
+51 PRINT
+54 DEC 5
+57 IF 5 69
+60 MOVE 1 0
+63 MOVE 2 1
+66 JUMP 15
+69 END
+
+

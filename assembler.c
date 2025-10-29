@@ -2,7 +2,7 @@
 ============================================================
   Fichero: assembler.c
   Creado: 26-10-2025
-  Ultima Modificacion: mar 28 oct 2025 11:46:31
+  Ultima Modificacion: dimarts, 28 d’octubre de 2025, 18:00:02
   oSCAR jIMENEZ pUIG                                       
 ============================================================
 */
@@ -15,6 +15,7 @@
 #define EOL '\n'
 #define EOW ' '
 #define EON 0
+
 
 typedef u1 (*Read)(u1*);
 

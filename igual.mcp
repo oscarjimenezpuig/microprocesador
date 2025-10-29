@@ -1,0 +1,19 @@
+#IGUALDAD DE DOS ENTEROS
+#OJP 2025
+#Programa que dice si dos numeros enteros son iguales o no
+0 INPUT
+3 POP 0
+6 INPUT
+9 POP 1
+12 IF 0 27
+15 DEC 0
+18 IF 1 33
+21 DEC 1
+24 JUMP 12
+27 IFN 1 33
+30 LOAD 3 1
+33 PUSH 3
+36 PRINT
+39 END
+
+
